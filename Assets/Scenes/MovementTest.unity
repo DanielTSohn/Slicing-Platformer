@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 100910579}
   - component: {fileID: 100910580}
   - component: {fileID: 100910581}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player Input
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -291,7 +291,7 @@ GameObject:
   m_Component:
   - component: {fileID: 122768067}
   - component: {fileID: 122768068}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: BottomRig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -661,7 +661,7 @@ GameObject:
   - component: {fileID: 503010938}
   - component: {fileID: 503010939}
   - component: {fileID: 503010940}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Movement Root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -700,11 +700,18 @@ MonoBehaviour:
   inputHandler: {fileID: 100910581}
   movementRoot: {fileID: 503010938}
   movementCamera: {fileID: 1788201630}
-  jumpMultiplier: 250
-  speedMultiplier: 30
+  playerHeight: 2
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  jumpForce: 49999.996
+  jumpDownMultiplier: 0.519
+  jumpCooldown: 0.1
+  speedMultiplier: 3300
   slowdownMultiplier: 0.05
   sprintMultiplier: 1.5
   canMove: 1
+  canJump: 1
 --- !u!54 &503010940
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -713,7 +720,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 503010937}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 110
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -744,7 +751,7 @@ GameObject:
   - component: {fileID: 593334265}
   - component: {fileID: 593334264}
   - component: {fileID: 593334263}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: cm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -871,7 +878,7 @@ GameObject:
   - component: {fileID: 636715520}
   - component: {fileID: 636715519}
   - component: {fileID: 636715518}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: cm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -996,7 +1003,7 @@ GameObject:
   m_Component:
   - component: {fileID: 687462619}
   - component: {fileID: 687462620}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: TopRig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1123,7 +1130,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1089200736}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Visual Root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1158,7 +1165,7 @@ GameObject:
   - component: {fileID: 1148332044}
   - component: {fileID: 1148332043}
   - component: {fileID: 1148332042}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1187,7 +1194,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1148332040}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 0e3459f33d6a1a74dad9046c55779856, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1265,7 +1272,7 @@ GameObject:
   - component: {fileID: 1327608293}
   - component: {fileID: 1327608292}
   - component: {fileID: 1327608291}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: cm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1391,7 +1398,7 @@ GameObject:
   - component: {fileID: 1405473069}
   - component: {fileID: 1405473068}
   - component: {fileID: 1405473067}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1481,7 +1488,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1668338543}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player Base Root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1517,7 +1524,7 @@ GameObject:
   - component: {fileID: 1788201630}
   - component: {fileID: 1788201631}
   - component: {fileID: 1788201632}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Orbit Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1673,7 +1680,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1788774782}
   - component: {fileID: 1788774783}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: MiddleRig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
