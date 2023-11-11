@@ -18,7 +18,7 @@
                     "name": "Camera",
                     "type": "PassThrough",
                     "id": "55048a78-7340-42af-a88d-b25cd24b6340",
-                    "expectedControlType": "Stick",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -134,7 +134,7 @@
                 {
                     "name": "",
                     "id": "d77da843-d978-4935-bd66-ba1cb80e393f",
-                    "path": "*/{Secondary2DMotion}",
+                    "path": "<Mouse>/delta",
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
@@ -161,6 +161,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Sprint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c492a4b2-a4d4-4d37-b5c0-71f25ceb1cb4",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "ScaleVector2(x=30,y=30)",
+                    "groups": "Gamepad",
+                    "action": "Camera",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
