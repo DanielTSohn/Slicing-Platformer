@@ -44,6 +44,7 @@ public class PlayerInputHandling : MonoBehaviour
     [Header("Jump")]
     [SerializeField, Tooltip("Called when the player inputs a jump action, state passed as bool\nTrue = player performed jump, False = player stopped performing jump")]
     private UnityEvent<bool> jumpPerformedEvent;
+    
     /// <summary>
     /// Called when the player inputs a sprint action, state passed as bool<br/>
     /// True = player performed sprint, False = player stopped performing sprint
@@ -52,6 +53,15 @@ public class PlayerInputHandling : MonoBehaviour
     [Header("Sprint")]
     [SerializeField, Tooltip("Called when the player inputs a sprint action, state passed as bool\nTrue = player performed sprint, False = player stopped performing sprint")] 
     private UnityEvent<bool> sprintActivatedEvent;
+
+    /// <summary>
+    /// Called when the player inputs an aim mode action, state passed as bool<br/>
+    /// True = player performed aim mode, False = player stopped performing aim mode
+    /// </summary>
+    public event Action<bool> AimModeActivatedAction;
+    [Header("AimMode")]
+    [SerializeField, Tooltip("Called when the player inputs an aim mode action, state passed as bool\nTrue = player performed aim mode, False = player stopped performing aim mode")]
+    private UnityEvent<bool> aimModeActivatedEvent;
 
     /// <summary>
     /// Read movement input values and relays if no input is performed
@@ -112,5 +122,15 @@ public class PlayerInputHandling : MonoBehaviour
     {
         SprintActivatedAction?.Invoke(sprint.performed);
         sprintActivatedEvent.Invoke(sprint.performed);
+    }
+
+    /// <summary>
+    /// Read aim mode input value as a button; trasmits true state depending if treshold is reached, false otherwise
+    /// </summary>
+    /// <param name="aimMode">The aim mode action callback to read from</param>
+    public void ReadAimMode(InputAction.CallbackContext aimMode)
+    {
+        AimModeActivatedAction?.Invoke(aimMode.performed);
+        aimModeActivatedEvent.Invoke(aimMode.performed);
     }
 }

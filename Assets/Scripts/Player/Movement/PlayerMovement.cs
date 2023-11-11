@@ -13,8 +13,14 @@ public class PlayerMovement : MonoBehaviour
     private PlayerInputHandling inputHandler;
     [SerializeField, Tooltip("Movement root, should be the object script is on")] 
     private Transform movementRoot;
+    [SerializeField, Tooltip("Visual root, rotation is handled on this")]
+    private Transform visualRoot;
     [SerializeField, Tooltip("The camera movement should be relative to")] 
     private Transform movementCamera;
+    [SerializeField, Tooltip("The camera used for aiming")] 
+    private Transform aimCamera;
+    [SerializeField, Tooltip("The point the player should face")]
+    private Transform aimingPoint;
 
     [Header("Parameters")]
     [SerializeField, Min(0), Tooltip("The height (meters) of the character, used for ground and ceiling checks")]
@@ -42,6 +48,7 @@ public class PlayerMovement : MonoBehaviour
     private bool canJump = true;
     public bool Sprinting { get; private set; } = false;
     public bool Grounded { get; private set; } = false;
+    public bool Aiming { get; private set; } = false;
 
     private bool jumpReleased = false;
     private Vector3 movementVector = Vector3.zero;
@@ -77,6 +84,8 @@ public class PlayerMovement : MonoBehaviour
         inputHandler.MovementPerformedAction += ReadMovement;
         inputHandler.MovementStoppedAction += ReadStop;
         inputHandler.JumpPerformedAction += ReadJump;
+        inputHandler.CameraMovementPerformedAction += ReadCameraMovement;
+        inputHandler.AimModeActivatedAction += ReadAimMode;
         inputHandler.SprintActivatedAction += ReadSprint;
 
         if (jumpCooldownTimer != null) StopCoroutine(jumpCooldownTimer);
@@ -88,6 +97,8 @@ public class PlayerMovement : MonoBehaviour
         inputHandler.MovementPerformedAction -= ReadMovement;
         inputHandler.MovementStoppedAction -= ReadStop;
         inputHandler.JumpPerformedAction -= ReadJump;
+        inputHandler.CameraMovementPerformedAction -= ReadCameraMovement;
+        inputHandler.AimModeActivatedAction -= ReadAimMode;
         inputHandler.SprintActivatedAction -= ReadSprint;
 
         StopAllCoroutines();
@@ -118,17 +129,41 @@ public class PlayerMovement : MonoBehaviour
         movementVector = new Vector3(movement.x, 0, movement.y);
     }
 
+    public void ReadCameraMovement(Vector2 cameraMovement)
+    {
+        if(Aiming)
+        {
+            aimingPoint.position = movementRoot.position + (movementRoot.position - aimCamera.position);
+        }
+        else
+        {
+            aimingPoint.position = movementRoot.position - movementForward;
+        }
+        visualRoot.LookAt(aimingPoint);
+    }
+
     public void ReadStop()
     {
         movementVector = Vector3.zero;
     }
-
     public void ReadSprint(bool sprint)
     {
         Sprinting = sprint;
         if (sprint) sprintMultiplierValue = sprintMultiplier;
         else sprintMultiplierValue = 1;
     } 
+
+    public void ReadAimMode(bool aimMode)
+    {
+        if(aimMode)
+        {
+            EnterAimMode();
+        }
+        else
+        {
+            EnterMovementMode();
+        }
+    }
 
     public void MovePlayer()
     {
@@ -142,6 +177,22 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = velocity;
             rb.AddForce(sprintMultiplierValue * speedMultiplier * Time.fixedDeltaTime * (-movementForward * movementVector.z + movementRight * movementVector.x).normalized, ForceMode.Impulse);
         }
+    }
+
+    public void EnterAimMode()
+    {
+        canMove = false;
+        movementCamera.gameObject.SetActive(false);
+        aimCamera.gameObject.SetActive(true);
+        Aiming = true;
+    }
+
+    public void EnterMovementMode()
+    {
+        canMove = true;
+        aimCamera.gameObject.SetActive(false);
+        movementCamera.gameObject.SetActive(true);
+        Aiming = false;
     }
 
     private void GroundCheck()
@@ -162,4 +213,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(aimingPoint.position, 0.5f);
+    }
 }
