@@ -210,14 +210,14 @@ public class PlayerMovement : MonoBehaviour
 
     public void MovePlayer()
     {
-        if(canMove)
+        Vector3 velocity = rb.velocity;
+        velocity.x /= 1 + (slowdownMultiplier / sprintMultiplierValue);
+        velocity.z /= 1 + (slowdownMultiplier / sprintMultiplierValue);
+        rb.velocity = velocity;
+        if (canMove)
         {
             movementForward = Vector3.ProjectOnPlane(orbitVirtualCamera.position - movementRoot.position, movementRoot.up).normalized;
             movementRight = Vector3.Cross(movementForward, movementRoot.up).normalized;
-            Vector3 velocity = rb.velocity;
-            velocity.x /= 1 + (slowdownMultiplier / sprintMultiplierValue);
-            velocity.z /= 1 + (slowdownMultiplier / sprintMultiplierValue);
-            rb.velocity = velocity;
             Vector3 direction = (-movementForward * movementVector.z + movementRight * movementVector.x).normalized;
             rb.AddForce(sprintMultiplierValue * speedMultiplier * Time.fixedDeltaTime * direction, ForceMode.Impulse);
             aimingPoint.position = movementRoot.position + direction;
