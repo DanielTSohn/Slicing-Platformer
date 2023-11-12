@@ -97,16 +97,6 @@ public class PlayerMovement : MonoBehaviour
     {
         MovePlayer();
         GroundCheck();
-        if (Aiming)
-        {
-            aimingPoint.position = movementRoot.position + (movementRoot.position - aimCamera.position);
-        }
-        else
-        {
-            if (movementVector.magnitude < 0.001f) aimingPoint.position = movementRoot.position - movementForward;
-            else aimingPoint.position = movementRoot.position + (-movementForward * movementVector.z + movementRight * movementVector.x).normalized;
-        }
-        visualRoot.LookAt(aimingPoint);
     }
 
     public void Initialize()
@@ -161,11 +151,16 @@ public class PlayerMovement : MonoBehaviour
     public void ReadMovement(Vector2 movement)
     {
         movementVector = new Vector3(movement.x, 0, movement.y);
+        aimingPoint.position = movementRoot.position - movementForward * movementVector.z + movementRight * movementVector.x;
     }
 
     public void ReadCameraMovement(Vector2 cameraMovement)
     {
-
+        if (Aiming)
+        {
+            aimingPoint.position = movementRoot.position + (movementRoot.position - aimCamera.position);
+            visualRoot.LookAt(aimingPoint);
+        }
     }
 
     public void ReadStop()
@@ -201,7 +196,10 @@ public class PlayerMovement : MonoBehaviour
             velocity.x /= 1 + (slowdownMultiplier / sprintMultiplierValue);
             velocity.z /= 1 + (slowdownMultiplier / sprintMultiplierValue);
             rb.velocity = velocity;
-            rb.AddForce(sprintMultiplierValue * speedMultiplier * Time.fixedDeltaTime * (-movementForward * movementVector.z + movementRight * movementVector.x).normalized, ForceMode.Impulse);
+            Vector3 direction = (-movementForward * movementVector.z + movementRight * movementVector.x).normalized;
+            rb.AddForce(sprintMultiplierValue * speedMultiplier * Time.fixedDeltaTime * direction, ForceMode.Impulse);
+            aimingPoint.position = movementRoot.position + direction;
+            visualRoot.LookAt(aimingPoint);
         }
     }
 
@@ -216,7 +214,15 @@ public class PlayerMovement : MonoBehaviour
             Aiming = true;
             TimeManager.Instance.AddMultiplier(aimModeTimeMultiplier);
             if(!Grounded) StartCoroutine(WaitForGrounded());
+            StartCoroutine(WaitForFrame());
         }
+    }
+
+    private IEnumerator WaitForFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        aimingPoint.position = movementRoot.position + (movementRoot.position - aimCamera.position);
+        visualRoot.LookAt(aimingPoint);
     }
 
     public void EnterMovementMode()
@@ -230,6 +236,8 @@ public class PlayerMovement : MonoBehaviour
             Aiming = false;
             TimeManager.Instance.RemoveMultiplier(aimModeTimeMultiplier);
             StopCoroutine(WaitForGrounded());
+            aimingPoint.position = movementRoot.position - movementForward;
+            visualRoot.LookAt(aimingPoint);
         }
     }
 
