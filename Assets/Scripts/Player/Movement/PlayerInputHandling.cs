@@ -64,6 +64,16 @@ public class PlayerInputHandling : MonoBehaviour
     private UnityEvent<bool> aimModeActivatedEvent;
 
     /// <summary>
+    /// Called when the player inputs an action action, state passed as bool<br/>
+    /// True = player performed action, False = player stopped performing action
+    /// </summary>
+    public event Action<bool> ActionActivatedAction;
+    [Header("AimMode")]
+    [SerializeField, Tooltip("Called when the player inputs an action action, state passed as bool\nTrue = player performed action, False = player stopped performing action")]
+    private UnityEvent<bool> actionActivatedEvent;
+
+
+    /// <summary>
     /// Read movement input values and relays if no input is performed
     /// Invokes valid actions and Unity Event with movement as Vector2
     /// </summary>
@@ -105,7 +115,7 @@ public class PlayerInputHandling : MonoBehaviour
     }
 
     /// <summary>
-    /// Read jump input value as a button; trasmits true state depending if treshold is reached, false otherwise
+    /// Read jump input value as a button; trasmits true state depending if threshold is reached, false otherwise
     /// </summary>
     /// <param name="jump">The jump action callback to read from</param>
     public void OnJump(InputAction.CallbackContext jump) 
@@ -115,7 +125,7 @@ public class PlayerInputHandling : MonoBehaviour
     }
 
     /// <summary>
-    /// Read sprint input value as a button; trasmits true state depending if treshold is reached, false otherwise
+    /// Read sprint input value as a button; trasmits true state depending if threshold is reached, false otherwise
     /// </summary>
     /// <param name="sprint">The sprint action callback to read from</param>
     public void ReadSprint(InputAction.CallbackContext sprint)
@@ -125,12 +135,22 @@ public class PlayerInputHandling : MonoBehaviour
     }
 
     /// <summary>
-    /// Read aim mode input value as a button; trasmits true state depending if treshold is reached, false otherwise
+    /// Read aim mode input value as a button; trasmits true state depending if threshold is reached, false otherwise
     /// </summary>
     /// <param name="aimMode">The aim mode action callback to read from</param>
     public void ReadAimMode(InputAction.CallbackContext aimMode)
     {
         AimModeActivatedAction?.Invoke(aimMode.performed);
         aimModeActivatedEvent.Invoke(aimMode.performed);
+    }
+
+    /// <summary>
+    /// Read action input value as button; transmits true state depending if threshold is reached, false otherwise
+    /// </summary>
+    /// <param name="action">The action action callback to read from</param>
+    public void ReadAction(InputAction.CallbackContext action)
+    {
+        ActionActivatedAction?.Invoke(action.performed);
+        actionActivatedEvent.Invoke(action.performed);
     }
 }

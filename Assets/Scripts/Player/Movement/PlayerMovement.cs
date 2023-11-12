@@ -28,12 +28,18 @@ public class PlayerMovement : MonoBehaviour
     private Transform movementRoot;
     [SerializeField, Tooltip("Visual root, rotation is handled on this")]
     private Transform visualRoot;
+    [SerializeField, Tooltip("Main camera used for vision by the player")]
+    private Camera visualCamera;
     [SerializeField, Tooltip("The camera movement should be relative to")] 
-    private Transform movementCamera;
+    private Transform orbitVirtualCamera;
     [SerializeField, Tooltip("The camera used for aiming")] 
-    private Transform aimCamera;
+    private Transform aimVirtualCamera;
     [SerializeField, Tooltip("The point the player should face")]
     private Transform aimingPoint;
+    [SerializeField, Tooltip("The point where the grapple attracts the player")]
+    private GameObject grapplePoint;
+    [SerializeField, Tooltip("The maximum range the player can grapple")]
+    private float grappleRange;
 
     [Header("Parameters")]
     [SerializeField, Min(0), Tooltip("The height (meters) of the character, used for ground and ceiling checks")]
@@ -75,7 +81,6 @@ public class PlayerMovement : MonoBehaviour
     private Coroutine jumpCooldownTimer;
     private RaycastHit groundCheckInfo;
     private TimeMultiplier aimModeTimeMultiplier;
-    private Collider[] groundDetections = new Collider[1];
 
     private void Start()
     {
@@ -107,6 +112,7 @@ public class PlayerMovement : MonoBehaviour
         inputHandler.CameraMovementPerformedAction += ReadCameraMovement;
         inputHandler.AimModeActivatedAction += ReadAimMode;
         inputHandler.SprintActivatedAction += ReadSprint;
+        inputHandler.ActionActivatedAction += ReadAction;
 
         if (jumpCooldownTimer != null) StopCoroutine(jumpCooldownTimer);
         jumpCooldownTimer = StartCoroutine(WaitForJumpCooldown());
@@ -114,6 +120,7 @@ public class PlayerMovement : MonoBehaviour
         aimModeTimeMultiplier.Multiplier = aimModeParameters.Multiplier;
         aimModeTimeMultiplier.Duration = aimModeParameters.Duration;
         aimModeTimeMultiplier.Source = gameObject;
+        Cursor.lockState = CursorLockMode.Confined;
     }
 
     public void Uninitialize()
@@ -124,6 +131,8 @@ public class PlayerMovement : MonoBehaviour
         inputHandler.CameraMovementPerformedAction -= ReadCameraMovement;
         inputHandler.AimModeActivatedAction -= ReadAimMode;
         inputHandler.SprintActivatedAction -= ReadSprint;
+        inputHandler.ActionActivatedAction -= ReadAction;
+        Cursor.lockState = CursorLockMode.None;
 
         StopAllCoroutines();
     }
@@ -158,7 +167,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Aiming)
         {
-            aimingPoint.position = movementRoot.position + (movementRoot.position - aimCamera.position);
+            aimingPoint.position = movementRoot.position + (movementRoot.position - aimVirtualCamera.position);
             visualRoot.LookAt(aimingPoint);
         }
     }
@@ -186,11 +195,24 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void ReadAction(bool action)
+    {
+        if(action)
+        {
+            ShootGrapple();
+        }
+        else
+        {
+            ReleaseGrapple();
+        }
+    }
+
+
     public void MovePlayer()
     {
         if(canMove)
         {
-            movementForward = Vector3.ProjectOnPlane(movementCamera.position - movementRoot.position, movementRoot.up).normalized;
+            movementForward = Vector3.ProjectOnPlane(orbitVirtualCamera.position - movementRoot.position, movementRoot.up).normalized;
             movementRight = Vector3.Cross(movementForward, movementRoot.up).normalized;
             Vector3 velocity = rb.velocity;
             velocity.x /= 1 + (slowdownMultiplier / sprintMultiplierValue);
@@ -209,8 +231,8 @@ public class PlayerMovement : MonoBehaviour
         {
             canMove = false;
             canJump = false;
-            movementCamera.gameObject.SetActive(false);
-            aimCamera.gameObject.SetActive(true);
+            orbitVirtualCamera.gameObject.SetActive(false);
+            aimVirtualCamera.gameObject.SetActive(true);
             Aiming = true;
             TimeManager.Instance.AddMultiplier(aimModeTimeMultiplier);
             if(!Grounded) StartCoroutine(WaitForGrounded());
@@ -221,7 +243,7 @@ public class PlayerMovement : MonoBehaviour
     private IEnumerator WaitForFrame()
     {
         yield return new WaitForEndOfFrame();
-        aimingPoint.position = movementRoot.position + (movementRoot.position - aimCamera.position);
+        aimingPoint.position = movementRoot.position + (movementRoot.position - aimVirtualCamera.position);
         visualRoot.LookAt(aimingPoint);
     }
 
@@ -231,8 +253,8 @@ public class PlayerMovement : MonoBehaviour
         {
             canMove = true;
             canJump = true;
-            aimCamera.gameObject.SetActive(false);
-            movementCamera.gameObject.SetActive(true);
+            aimVirtualCamera.gameObject.SetActive(false);
+            orbitVirtualCamera.gameObject.SetActive(true);
             Aiming = false;
             TimeManager.Instance.RemoveMultiplier(aimModeTimeMultiplier);
             StopCoroutine(WaitForGrounded());
@@ -241,11 +263,23 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void ShootGrapple()
+    {
+        if (Aiming && Physics.Raycast(visualCamera.transform.position, visualCamera.transform.forward, out groundCheckInfo, grappleRange, groundLayers))
+        {
+            grapplePoint.transform.position = groundCheckInfo.point;
+            if(!grapplePoint.activeSelf) grapplePoint.SetActive(true);
+        }
+    }
+
+    public void ReleaseGrapple()
+    {
+        if(grapplePoint.activeSelf) grapplePoint.SetActive(false);
+    }
+
     private void GroundCheck()
     {
-        groundDetections[0] = null;
-        Physics.OverlapSphereNonAlloc(movementRoot.position - movementRoot.up * playerHeight / 2, groundCheckSize, groundDetections, groundLayers);
-        if (groundDetections[0] != null) Grounded = true;
+        if(Physics.CheckSphere(movementRoot.position - movementRoot.up * playerHeight / 2, groundCheckSize, groundLayers)) Grounded = true;
         else Grounded = false;
     }
 
@@ -265,8 +299,9 @@ public class PlayerMovement : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(aimingPoint.position, 0.5f);
+        if(Aiming) Gizmos.DrawRay(visualCamera.transform.position, visualCamera.transform.forward * grappleRange);
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(movementRoot.position - (movementRoot.up * playerHeight / 2), groundCheckSize);
+        Gizmos.DrawWireSphere(groundCheckInfo.point, 0.5f);
     }
 }
