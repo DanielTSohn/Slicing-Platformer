@@ -40,6 +40,8 @@ public class PlayerMovement : MonoBehaviour
     private GameObject grapplePoint;
     [SerializeField, Tooltip("The maximum range the player can grapple")]
     private float grappleRange;
+    [SerializeField]
+    private LineRenderer grappleRenderer;
     [SerializeField, Tooltip("The UI root aim mode elements")]
     private GameObject AimModeUI;
 
@@ -273,7 +275,21 @@ public class PlayerMovement : MonoBehaviour
         if (Aiming && Physics.Raycast(visualCamera.transform.position, visualCamera.transform.forward, out groundCheckInfo, grappleRange, groundLayers))
         {
             grapplePoint.transform.position = groundCheckInfo.point;
-            if(!grapplePoint.activeSelf) grapplePoint.SetActive(true);
+            if (!grapplePoint.activeSelf)
+            { 
+                grapplePoint.SetActive(true);
+                StartCoroutine(UpdateGrapple());
+            }
+        }
+    }
+
+    private IEnumerator UpdateGrapple()
+    {
+        while(grapplePoint.activeSelf) 
+        {
+            grappleRenderer.SetPosition(0, movementRoot.position);
+            grappleRenderer.SetPosition(1, groundCheckInfo.point);
+            yield return new WaitForFixedUpdate();
         }
     }
 
