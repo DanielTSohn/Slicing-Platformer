@@ -66,6 +66,8 @@ public class PlayerMovement : MonoBehaviour
     private float sprintMultiplier;
     [SerializeField, Tooltip("The parameters for when aim mode is activated")]
     private AimModeParameters aimModeParameters;
+    [SerializeField, Tooltip("The upward direction the player defaults to")]
+    private Vector3 characterWorldUp = Vector3.up;
 
     public bool CanMove { get { return canMove; } private set { canMove = value; } }
     [SerializeField, Tooltip("Whether the player can move from input or not")] 
@@ -76,8 +78,10 @@ public class PlayerMovement : MonoBehaviour
     public bool Sprinting { get; private set; } = false;
     public bool Grounded { get; private set; } = false;
     public bool Aiming { get; private set; } = false;
+    public bool Grappling { get; private set; } = false;
 
     private bool jumpReleased = false;
+    private bool selfRighted = false;
     private Vector3 movementVector = Vector3.zero;
     private Vector3 movementForward = Vector3.forward;
     private Vector3 movementRight = Vector3.right;
@@ -85,7 +89,7 @@ public class PlayerMovement : MonoBehaviour
     private Coroutine jumpCooldownTimer;
     private RaycastHit groundCheckInfo;
     private TimeMultiplier aimModeTimeMultiplier;
-    private UInt16 aimModeSlowID;
+    private UInt32 aimModeSlowID;
 
     private void Start()
     {
@@ -148,7 +152,7 @@ public class PlayerMovement : MonoBehaviour
         {
             if(CanJump && Grounded)
             {
-                rb.AddRelativeForce(jumpForce * movementRoot.up, ForceMode.Impulse);
+                rb.AddRelativeForce(jumpForce * characterWorldUp, ForceMode.Impulse);
                 jumpReleased = true;
                 CanJump = false;
                 if (jumpCooldownTimer != null) StopCoroutine(jumpCooldownTimer);
@@ -157,7 +161,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else if(!Grounded && jumpReleased)
         {
-            rb.AddRelativeForce(-jumpDownMultiplier * jumpForce * movementRoot.up, ForceMode.Impulse);
+            rb.AddRelativeForce(-jumpDownMultiplier * jumpForce * characterWorldUp, ForceMode.Impulse);
             jumpReleased = false;
         }
     }
@@ -165,7 +169,6 @@ public class PlayerMovement : MonoBehaviour
     public void ReadMovement(Vector2 movement)
     {
         movementVector = new Vector3(movement.x, 0, movement.y);
-        aimingPoint.position = movementRoot.position - movementForward * movementVector.z + movementRight * movementVector.x;
     }
 
     public void ReadCameraMovement(Vector2 cameraMovement)
@@ -221,9 +224,19 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = velocity;
         if (canMove)
         {
-            movementForward = Vector3.ProjectOnPlane(orbitVirtualCamera.position - movementRoot.position, movementRoot.up).normalized;
-            movementRight = Vector3.Cross(movementForward, movementRoot.up).normalized;
-            Vector3 direction = (-movementForward * movementVector.z + movementRight * movementVector.x).normalized;
+            Vector3 direction;
+            if (Grounded)
+            {
+                movementForward = -Vector3.ProjectOnPlane(orbitVirtualCamera.position - movementRoot.position, characterWorldUp).normalized;
+                movementRight = -Vector3.Cross(movementForward, characterWorldUp).normalized;
+                direction = (movementForward * movementVector.z + movementRight * movementVector.x).normalized;
+            }
+            else
+            {
+                movementForward = visualCamera.transform.forward;
+                movementRight = visualCamera.transform.right;
+                direction = (movementForward * movementVector.z + movementRight * movementVector.x).normalized;
+            }
             rb.AddForce(sprintMultiplierValue * speedMultiplier * direction, ForceMode.Impulse);
             aimingPoint.position = movementRoot.position + direction;
             visualRoot.LookAt(aimingPoint);
@@ -279,6 +292,8 @@ public class PlayerMovement : MonoBehaviour
             { 
                 grapplePoint.SetActive(true);
                 StartCoroutine(UpdateGrapple());
+                Grappling = true;
+                selfRighted = false;
             }
         }
     }
@@ -296,11 +311,21 @@ public class PlayerMovement : MonoBehaviour
     public void ReleaseGrapple()
     {
         if(grapplePoint.activeSelf) grapplePoint.SetActive(false);
+        Grappling = false;
     }
 
     private void GroundCheck()
     {
-        if(Physics.CheckSphere(movementRoot.position - movementRoot.up * playerHeight / 2, groundCheckSize, groundLayers)) Grounded = true;
+        if (Physics.CheckSphere(movementRoot.position - characterWorldUp * playerHeight / 2, groundCheckSize, groundLayers))
+        {
+            Grounded = true;
+            if(!selfRighted)
+            {
+                aimingPoint.position = movementRoot.position + Vector3.ProjectOnPlane(movementRoot.forward, characterWorldUp).normalized;
+                visualRoot.LookAt(aimingPoint);
+                selfRighted = true;
+            }
+        }
         else Grounded = false;
     }
 
@@ -320,6 +345,7 @@ public class PlayerMovement : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(aimingPoint.position, 0.5f);
         if(Aiming) Gizmos.DrawRay(visualCamera.transform.position, visualCamera.transform.forward * grappleRange);
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(movementRoot.position - (movementRoot.up * playerHeight / 2), groundCheckSize);

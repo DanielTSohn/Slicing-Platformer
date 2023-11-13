@@ -30,9 +30,9 @@ public class TimeManager : MonoBehaviour
 {
     private float baseFixedTimeStep;
     private float baseTimeScale;
-    private Dictionary<UInt16, TimeMultiplier> timeMultipliers = new();
-    private Queue<UInt16> freeIDs = new();
-    private UInt16 currentMaxID = 0;
+    private Dictionary<UInt32, TimeMultiplier> timeMultipliers = new();
+    private Queue<UInt32> freeIDs = new();
+    private UInt32 currentMaxID = 0;
 
     public float TotalTimeMultiplier { get; private set; }
     public static TimeManager Instance { get; private set; }
@@ -54,7 +54,7 @@ public class TimeManager : MonoBehaviour
         TotalTimeMultiplier = 1;
     }
 
-    private IEnumerator CountTimeMultiplier(UInt16 id, float duration)
+    private IEnumerator CountTimeMultiplier(UInt32 id, float duration)
     {
         for(float time = duration; time > 0; time -= baseFixedTimeStep)
         {
@@ -63,7 +63,7 @@ public class TimeManager : MonoBehaviour
         RemoveMultiplier(id);
     }
 
-    private UInt16 GenerateID()
+    private UInt32 GenerateID()
     {
         if (freeIDs.TryDequeue(out var oldID)) return oldID;
         else return ++currentMaxID;
@@ -86,9 +86,9 @@ public class TimeManager : MonoBehaviour
         Time.fixedDeltaTime = baseFixedTimeStep * TotalTimeMultiplier;
     }
 
-    public UInt16 AddMultiplier(TimeMultiplier timeMultiplier)
+    public UInt32 AddMultiplier(TimeMultiplier timeMultiplier)
     {
-        UInt16 id = GenerateID();
+        UInt32 id = GenerateID();
         if (timeMultiplier.Duration > 0) timeMultiplier.Timer = StartCoroutine(CountTimeMultiplier(id, timeMultiplier.Duration));
         timeMultipliers.Add(id, timeMultiplier);
         TotalTimeMultiplier *= timeMultiplier.Multiplier;
@@ -96,7 +96,7 @@ public class TimeManager : MonoBehaviour
         return id;
     }
 
-    public void RemoveMultiplier(UInt16 id)
+    public void RemoveMultiplier(UInt32 id)
     {
         if(timeMultipliers.TryGetValue(id, out TimeMultiplier timeMultiplier))
         {

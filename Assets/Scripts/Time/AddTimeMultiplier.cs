@@ -15,7 +15,7 @@ public class AddTimeMultiplier : MonoBehaviour
     [SerializeField]
     private BaseGameEvent onMultiplierFinishedGameEvent;
 
-    private UInt16 multiplierID;
+    private UInt32 multiplierID;
     private bool assignedID = false;
 
     public void AddMultiplier()
