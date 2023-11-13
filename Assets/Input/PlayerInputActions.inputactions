@@ -217,6 +217,17 @@
                 },
                 {
                     "name": "",
+                    "id": "ab57f3e3-1e12-4933-85cd-b9ef3464651d",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Aim Mode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "fbd981b9-d9de-4d90-9da9-a30e482d60aa",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",

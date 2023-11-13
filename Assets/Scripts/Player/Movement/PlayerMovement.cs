@@ -83,6 +83,7 @@ public class PlayerMovement : MonoBehaviour
     private Coroutine jumpCooldownTimer;
     private RaycastHit groundCheckInfo;
     private TimeMultiplier aimModeTimeMultiplier;
+    private UInt16 aimModeSlowID;
 
     private void Start()
     {
@@ -145,7 +146,7 @@ public class PlayerMovement : MonoBehaviour
         {
             if(CanJump && Grounded)
             {
-                rb.AddRelativeForce(Time.fixedDeltaTime * jumpForce * movementRoot.up, ForceMode.Impulse);
+                rb.AddRelativeForce(jumpForce * movementRoot.up, ForceMode.Impulse);
                 jumpReleased = true;
                 CanJump = false;
                 if (jumpCooldownTimer != null) StopCoroutine(jumpCooldownTimer);
@@ -154,7 +155,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else if(!Grounded && jumpReleased)
         {
-            rb.AddRelativeForce(-jumpDownMultiplier * jumpForce * Time.fixedDeltaTime * movementRoot.up, ForceMode.Impulse);
+            rb.AddRelativeForce(-jumpDownMultiplier * jumpForce * movementRoot.up, ForceMode.Impulse);
             jumpReleased = false;
         }
     }
@@ -221,7 +222,7 @@ public class PlayerMovement : MonoBehaviour
             movementForward = Vector3.ProjectOnPlane(orbitVirtualCamera.position - movementRoot.position, movementRoot.up).normalized;
             movementRight = Vector3.Cross(movementForward, movementRoot.up).normalized;
             Vector3 direction = (-movementForward * movementVector.z + movementRight * movementVector.x).normalized;
-            rb.AddForce(sprintMultiplierValue * speedMultiplier * Time.fixedDeltaTime * direction, ForceMode.Impulse);
+            rb.AddForce(sprintMultiplierValue * speedMultiplier * direction, ForceMode.Impulse);
             aimingPoint.position = movementRoot.position + direction;
             visualRoot.LookAt(aimingPoint);
         }
@@ -236,7 +237,7 @@ public class PlayerMovement : MonoBehaviour
             orbitVirtualCamera.gameObject.SetActive(false);
             aimVirtualCamera.gameObject.SetActive(true);
             Aiming = true;
-            TimeManager.Instance.AddMultiplier(aimModeTimeMultiplier);
+            aimModeSlowID = TimeManager.Instance.AddMultiplier(aimModeTimeMultiplier);
             if(!Grounded) StartCoroutine(WaitForGrounded());
             StartCoroutine(WaitForFrame());
             AimModeUI.SetActive(true);
@@ -259,7 +260,7 @@ public class PlayerMovement : MonoBehaviour
             aimVirtualCamera.gameObject.SetActive(false);
             orbitVirtualCamera.gameObject.SetActive(true);
             Aiming = false;
-            TimeManager.Instance.RemoveMultiplier(aimModeTimeMultiplier);
+            TimeManager.Instance.RemoveMultiplier(aimModeSlowID);
             StopCoroutine(WaitForGrounded());
             aimingPoint.position = movementRoot.position - movementForward;
             visualRoot.LookAt(aimingPoint);
