@@ -40,6 +40,8 @@ public class PlayerMovement : MonoBehaviour
     private GameObject grapplePoint;
     [SerializeField, Tooltip("The maximum range the player can grapple")]
     private float grappleRange;
+    [SerializeField, Tooltip("The UI root aim mode elements")]
+    private GameObject AimModeUI;
 
     [Header("Parameters")]
     [SerializeField, Min(0), Tooltip("The height (meters) of the character, used for ground and ceiling checks")]
@@ -237,6 +239,7 @@ public class PlayerMovement : MonoBehaviour
             TimeManager.Instance.AddMultiplier(aimModeTimeMultiplier);
             if(!Grounded) StartCoroutine(WaitForGrounded());
             StartCoroutine(WaitForFrame());
+            AimModeUI.SetActive(true);
         }
     }
 
@@ -260,6 +263,7 @@ public class PlayerMovement : MonoBehaviour
             StopCoroutine(WaitForGrounded());
             aimingPoint.position = movementRoot.position - movementForward;
             visualRoot.LookAt(aimingPoint);
+            AimModeUI.SetActive(false);
         }
     }
 
