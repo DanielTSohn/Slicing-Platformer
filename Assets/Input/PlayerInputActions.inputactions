@@ -218,7 +218,7 @@
                 {
                     "name": "",
                     "id": "ab57f3e3-1e12-4933-85cd-b9ef3464651d",
-                    "path": "<Keyboard>/shift",
+                    "path": "<Keyboard>/ctrl",
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",

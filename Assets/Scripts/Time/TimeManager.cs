@@ -93,7 +93,6 @@ public class TimeManager : MonoBehaviour
         timeMultipliers.Add(id, timeMultiplier);
         TotalTimeMultiplier *= timeMultiplier.Multiplier;
         UpdateTimeScale();
-        Debug.Log(id);
         return id;
     }
 
