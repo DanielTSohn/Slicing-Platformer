@@ -207,6 +207,7 @@ public class PlayerMovement : MonoBehaviour
         aimModeTimeMultiplier.Duration = aimModeParameters.Duration;
         aimModeTimeMultiplier.Source = gameObject;
         Cursor.lockState = CursorLockMode.Confined;
+        visualCamera.transform.parent = null;
     }
 
     public void Uninitialize()
@@ -377,7 +378,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void ShootGrapple()
     {
-        if (Physics.Raycast(visualCamera.transform.position, visualCamera.transform.forward, out groundCheckInfo, grappleRange, groundLayers))
+        if (Physics.Raycast(movementRoot.transform.position, visualCamera.transform.forward, out groundCheckInfo, grappleRange, groundLayers))
         {
             grapplePoint.transform.position = groundCheckInfo.point;
             if (!grapplePoint.activeSelf)
@@ -437,7 +438,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(aimingPoint.position, 0.5f);
-        if(actionState == PlayerActionStates.Aiming) Gizmos.DrawRay(visualCamera.transform.position, visualCamera.transform.forward * grappleRange);
+        if(actionState == PlayerActionStates.Aiming) Gizmos.DrawRay(movementRoot.transform.position, visualCamera.transform.forward * grappleRange);
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(movementRoot.position - (movementRoot.up * playerHeight / 2), groundCheckSize);
         Gizmos.DrawWireSphere(groundCheckInfo.point, 0.5f);
