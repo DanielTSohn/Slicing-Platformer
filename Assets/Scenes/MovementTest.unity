@@ -1637,6 +1637,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player Base Root
       objectReference: {fileID: 0}
+    - target: {fileID: 6723159198661495011, guid: 0e300877f7a65104dba4ba089b0c199d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6850983277563892409, guid: 0e300877f7a65104dba4ba089b0c199d,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.0000000021498716
+      objectReference: {fileID: 0}
+    - target: {fileID: 6850983277563892409, guid: 0e300877f7a65104dba4ba089b0c199d,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 6.200775e-11
+      objectReference: {fileID: 0}
     - target: {fileID: 7074322217106979760, guid: 0e300877f7a65104dba4ba089b0c199d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1686,6 +1701,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7263640648208867076, guid: 0e300877f7a65104dba4ba089b0c199d,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -1e-45
+      objectReference: {fileID: 0}
+    - target: {fileID: 7263640648208867076, guid: 0e300877f7a65104dba4ba089b0c199d,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

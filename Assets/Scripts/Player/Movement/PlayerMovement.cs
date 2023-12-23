@@ -54,6 +54,8 @@ public class PlayerMovement : MonoBehaviour
     private Transform orbitVirtualCamera;
     [SerializeField, Tooltip("The camera used for aiming")]
     private Transform aimVirtualCamera;
+    [SerializeField, Tooltip("The camera used for aiming")]
+    private Transform sliceVirtualCamera;
     [SerializeField, Tooltip("The point the player should face")]
     private Transform aimingPoint;
     [SerializeField, Tooltip("The point where the grapple attracts the player")]
@@ -88,6 +90,8 @@ public class PlayerMovement : MonoBehaviour
     private AimModeParameters aimModeParameters;
     [SerializeField, Tooltip("The upward direction the player defaults to")]
     private Vector3 characterWorldUp = Vector3.up;
+    
+    [SerializeField] private Animator playerAnimator;
 
     public bool CanMove { get { return canMove; } private set { canMove = value; } }
     [SerializeField, Tooltip("Whether the player can move from input or not")]
@@ -162,6 +166,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 movementVector = Vector3.zero;
     private Vector3 movementForward = Vector3.forward;
     private Vector3 movementRight = Vector3.right;
+    private Vector2 cutAimVector;
     private float sprintMultiplierValue = 1;
     private Coroutine jumpCooldownTimer;
     private RaycastHit groundCheckInfo;
@@ -199,6 +204,8 @@ public class PlayerMovement : MonoBehaviour
         inputHandler.AimModeActivatedAction += ReadAimMode;
         inputHandler.SprintActivatedAction += ReadSprint;
         inputHandler.ActionActivatedAction += ReadAction;
+        inputHandler.AimModeSelectionActivatedAction += ReadAimModeSelect;
+        inputHandler.SliceAimActivatedAction += ReadSliceAim;
 
         if (jumpCooldownTimer != null) StopCoroutine(jumpCooldownTimer);
         jumpCooldownTimer = StartCoroutine(WaitForJumpCooldown());
@@ -219,9 +226,29 @@ public class PlayerMovement : MonoBehaviour
         inputHandler.AimModeActivatedAction -= ReadAimMode;
         inputHandler.SprintActivatedAction -= ReadSprint;
         inputHandler.ActionActivatedAction -= ReadAction;
+        inputHandler.AimModeSelectionActivatedAction -= ReadAimModeSelect;
+        inputHandler.SliceAimActivatedAction -= ReadSliceAim;
         Cursor.lockState = CursorLockMode.None;
 
         StopAllCoroutines();
+    }
+
+    public void ReadAimModeSelect(int select)
+    {
+        int length = Enum.GetNames(typeof(PlayerAimModes)).Length;
+        int position = (int)aimMode;
+        if(select < 0)
+        {
+            position--;
+            if (position < 0) position = length + position;
+            aimMode = (PlayerAimModes)(position);
+        }
+        else if (select > 0)
+        {
+            aimMode = (PlayerAimModes)(++position % length);
+        }
+        Debug.Log("Switched aim mode to: " + aimMode);
+        if (actionState == PlayerActionStates.Aiming) ManageAimModes();
     }
 
     public void ReadJump(bool jump)
@@ -256,6 +283,12 @@ public class PlayerMovement : MonoBehaviour
             aimingPoint.position = movementRoot.position + (movementRoot.position - aimVirtualCamera.position);
             visualRoot.LookAt(aimingPoint);
         }
+    }
+
+    public void ReadSliceAim(Vector2 aim)
+    {
+        playerAnimator.SetFloat("BlendX", aim.x);
+        playerAnimator.SetFloat("BlendY", aim.y);
     }
 
     public void ReadStop()
@@ -309,6 +342,10 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void ReadCutAim(Vector2 angle)
+    {
+    }
+
     public void MovePlayer()
     {
         Vector3 velocity = rb.velocity;
@@ -343,16 +380,38 @@ public class PlayerMovement : MonoBehaviour
             actionState = PlayerActionStates.Aiming;
             canMove = false;
             canJump = false;
-            orbitVirtualCamera.gameObject.SetActive(false);
-            aimVirtualCamera.gameObject.SetActive(true);
             aimModeSlowID = TimeManager.Instance.AddMultiplier(aimModeTimeMultiplier);
-            if(!Grounded) StartCoroutine(WaitForGrounded());
-            StartCoroutine(WaitForFrame());
+            if (!Grounded) StartCoroutine(WaitForGrounded());
+            StartCoroutine(LookWaitForFrame());
             AimModeUI.SetActive(true);
+            ManageAimModes();
         }
     }
 
-    private IEnumerator WaitForFrame()
+    public void ManageAimModes()
+    {
+        switch (aimMode)
+        {
+            case PlayerAimModes.Grapple:
+                orbitVirtualCamera.gameObject.SetActive(false);
+                aimVirtualCamera.gameObject.SetActive(true);
+                sliceVirtualCamera.gameObject.SetActive(false);
+                break;
+            case PlayerAimModes.Shoot:
+                orbitVirtualCamera.gameObject.SetActive(false);
+                aimVirtualCamera.gameObject.SetActive(true);
+                sliceVirtualCamera.gameObject.SetActive(false);
+                break;
+            case PlayerAimModes.Cut:
+                inputHandler.playerInput.SwitchCurrentActionMap("Slice");
+                orbitVirtualCamera.gameObject.SetActive(false);
+                aimVirtualCamera.gameObject.SetActive(false);
+                sliceVirtualCamera.gameObject.SetActive(true);
+                break;
+        }
+    }
+
+    private IEnumerator LookWaitForFrame()
     {
         yield return new WaitForEndOfFrame();
         aimingPoint.position = movementRoot.position + (movementRoot.position - aimVirtualCamera.position);
@@ -363,6 +422,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if(actionState == PlayerActionStates.Aiming)
         {
+            orbitVirtualCamera.gameObject.SetActive(true);
+            aimVirtualCamera.gameObject.SetActive(false);
+            sliceVirtualCamera.gameObject.SetActive(false);
+            inputHandler.playerInput.SwitchCurrentActionMap("Combat");
             actionState = PlayerActionStates.Passive;
             canMove = true;
             canJump = true;

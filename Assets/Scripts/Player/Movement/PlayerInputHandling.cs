@@ -7,6 +7,8 @@ using UnityEngine.InputSystem;
 
 public class PlayerInputHandling : MonoBehaviour
 {
+    public PlayerInput playerInput;
+
     /// <summary>
     /// Called when player inputs a move value, movement passed as Vector2 <br/>
     /// x = x axis (left-right), y = z axis (forward-back)
@@ -68,9 +70,23 @@ public class PlayerInputHandling : MonoBehaviour
     /// True = player performed action, False = player stopped performing action
     /// </summary>
     public event Action<bool> ActionActivatedAction;
-    [Header("AimMode")]
     [SerializeField, Tooltip("Called when the player inputs an action action, state passed as bool\nTrue = player performed action, False = player stopped performing action")]
     private UnityEvent<bool> actionActivatedEvent;
+
+    /// <summary>
+    /// Called when the player inputs an aim mode slection change action, request passed as float<br/>
+    /// </summary>
+    public event Action<int> AimModeSelectionActivatedAction;
+    [SerializeField, Tooltip("Called when the player inputs an aim mode slection change action, request passed as float")]
+    private UnityEvent<int> aimModeSelectionActivatedEvent;
+
+    /// <summary>
+    /// Called when the player inputs an slicing aim action, request passed as Vector2<br/>
+    /// </summary>
+    public event Action<Vector2> SliceAimActivatedAction;
+    [SerializeField, Tooltip("Called when the player inputs an slicing aim action, request passed as Vector2")]
+    private UnityEvent<Vector2> sliceAimActivatedEvent;
+
 
 
     /// <summary>
@@ -152,5 +168,41 @@ public class PlayerInputHandling : MonoBehaviour
     {
         ActionActivatedAction?.Invoke(action.performed);
         actionActivatedEvent.Invoke(action.performed);
+    }
+
+    public void ReadAimModeSelection(InputAction.CallbackContext aimModeSelect)
+    {
+        if(aimModeSelect.performed)
+        {
+            float select = aimModeSelect.ReadValue<float>();
+            int selectValue = 0;
+            if (select < 0)
+            {
+                selectValue = -1;
+            }
+            else if (select > 0)
+            {
+                selectValue = 1;
+            }
+            AimModeSelectionActivatedAction?.Invoke(selectValue);
+            aimModeSelectionActivatedEvent.Invoke(selectValue);
+        }
+    }
+
+    public void ReadSliceAim(InputAction.CallbackContext sliceAim)
+    {
+        if(sliceAim.performed)
+        {
+            Vector2 aim = sliceAim.ReadValue<Vector2>();
+            if(playerInput.currentControlScheme == "KeyboardMouse")
+            {
+                aim -= new Vector2(Screen.width/2, Screen.height/2);
+            }
+            aim.Normalize();
+            aim.x *= -1;
+            Debug.Log(aim);
+            SliceAimActivatedAction?.Invoke(aim);
+            sliceAimActivatedEvent.Invoke(aim);
+        }
     }
 }
